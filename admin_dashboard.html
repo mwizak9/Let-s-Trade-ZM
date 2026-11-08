@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Let's Trade ZM</title>
+    <style>
+        :root {
+            --navy: #0a192f;
+            --purple: #6b21a8;
+            --cream: #fffdfa;
+            --black: #0f172a;
+            --gold: #f59e0b;
+            --border: rgba(255, 255, 255, 0.15);
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { 
+            background: linear-gradient(rgba(10, 25, 47, 0.9), rgba(10, 25, 47, 0.95)), url('assets/images/image_4.png') no-repeat center center fixed; 
+            background-size: cover; 
+            color: var(--cream); 
+            padding: 10px; 
+            display: flex; 
+            justify-content: center; 
+            min-height: 100vh; 
+        }
+        .mobile-container { width: 100%; max-width: 480px; background: rgba(15, 23, 42, 0.92); border: 1px solid var(--border); border-radius: 28px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); display: flex; flex-direction: column; overflow: hidden; height: 96vh; backdrop-filter: blur(12px); }
+        
+        header { padding: 16px 20px; background: rgba(15, 23, 42, 0.98); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        header h2 { font-size: 1.2rem; font-weight: 800; color: var(--cream); }
+        .logout-btn { background: rgba(239, 68, 68, 0.2); border: 1px solid var(--danger); color: #fca5a5; padding: 6px 14px; border-radius: 10px; cursor: pointer; font-size: 0.85rem; font-weight: 700; }
+        
+        .tab-nav { display: flex; background: rgba(255,255,255,0.04); padding: 4px; border-bottom: 1px solid var(--border); gap: 4px; }
+        .tab-btn { flex: 1; padding: 10px; border: none; background: transparent; font-weight: 700; font-size: 0.85rem; color: #94a3b8; cursor: pointer; text-align: center; border-radius: 10px; transition: all 0.2s; }
+        .tab-btn.active { background: rgba(255,255,255,0.1); color: var(--cream); border: 2px solid var(--gold); }
+        
+        .tab-content { flex: 1; overflow-y: auto; padding: 16px; }
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; }
+
+        .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+        .metric-card { background: rgba(255,255,255,0.04); border: 1px solid var(--border); padding: 16px; border-radius: 16px; text-align: center; }
+        .metric-card h4 { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px; font-weight: 700; }
+        .metric-card p { font-size: 1.4rem; font-weight: 800; color: var(--gold); }
+
+        .card-item { background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 12px; font-size: 0.9rem; }
+        .card-item h3 { font-size: 1.05rem; margin-bottom: 6px; color: var(--cream); display: flex; justify-content: space-between; align-items: center; }
+        .card-item p { color: #94a3b8; font-size: 0.85rem; margin-bottom: 8px; }
+        
+        .badge { display: inline-block; font-size: 0.7rem; padding: 3px 8px; border-radius: 6px; font-weight: 700; }
+        .badge-active { background: #d1fae5; color: var(--success); }
+        .badge-hidden { background: #fee2e2; color: #ef4444; }
+
+        .inline-form { margin-top: 8px; display: flex; gap: 8px; }
+        .inline-form input { flex: 1; padding: 8px 10px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 0.8rem; outline: none; background: rgba(255,255,255,0.05); color: var(--cream); }
+        
+        .btn-sm { padding: 8px 12px; background: var(--gold); color: var(--black); border: none; border-radius: 10px; font-size: 0.8rem; cursor: pointer; font-weight: 700; }
+        .btn-sm:hover { background: #d97706; color: white; }
+        .btn-danger { background: var(--danger); color: white; width: 100%; padding: 10px; border-radius: 10px; border: none; font-weight: 700; cursor: pointer; }
+        
+        .action-btns { display: flex; gap: 6px; margin-top: 8px; }
+    </style>
+</head>
+<body>
+
+<div class="mobile-container">
+    <header>
+        <h2>Admin Portal</h2>
+        <button class="logout-btn" onclick="logoutAdmin()">Logout</button>
+    </header>
+
+    <div class="tab-nav">
+        <button class="tab-btn active" onclick="switchTab(0)">Clients</button>
+        <button class="tab-btn" onclick="switchTab(1)">Catalogs</button>
+        <button class="tab-btn" onclick="switchTab(2)">Analytics</button>
+    </div>
+
+    <div class="tab-content">
+        <!-- TAB 1: CLIENTS & SUBSCRIPTIONS -->
+        <div class="tab-pane active" id="tab-clients">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+                <h3 style="font-size: 1rem; font-weight: 700;">Customer Subscriptions & Credentials</h3>
+                <button class="btn-sm" onclick="openAddClientModal()">+ Add Client</button>
+            </div>
+            <div id="adminClientsList"></div>
+        </div>
+
+        <!-- TAB 2: CATALOGS -->
+        <div class="tab-pane" id="tab-catalogs">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+                <h3 style="font-size: 1rem; font-weight: 700;">Catalog & Price List Management</h3>
+                <button class="btn-sm" onclick="openAddCatalogItemModal()">+ Add Service</button>
+            </div>
+            <div id="adminCatalogList"></div>
+        </div>
+
+        <!-- TAB 3: ANALYTICS -->
+        <div class="tab-pane" id="tab-analytics">
+            <h3 style="margin-bottom: 12px; font-size: 1rem; font-weight: 700;">System Metrics & Revenue</h3>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <h4>Total Clients</h4>
+                    <p id="mTotalClients">0</p>
+                </div>
+                <div class="metric-card">
+                    <h4>Active Subs</h4>
+                    <p id="mTotalSubs">0</p>
+                </div>
+                <div class="metric-card">
+                    <h4>Awaiting Payment</h4>
+                    <p id="mPending">0</p>
+                </div>
+                <div class="metric-card">
+                    <h4>Outstanding</h4>
+                    <p id="mOutstanding">K0</p>
+                </div>
+                <div class="metric-card" style="grid-column: span 2;">
+                    <h4>Confirmed Revenue</h4>
+                    <p id="mTotalRevenue">K0</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="config.js"></script>
+<script src="api.js"></script>
+<script>
+    if (!getToken('admin')) {
+        window.location.href = 'admin.html';
+    }
+
+    const adminApi = (path, opts = {}) => api(path, { ...opts, role: 'admin' });
+    let clientsCache = [];
+
+    function switchTab(index) {
+        document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === index));
+        document.querySelectorAll('.tab-pane').forEach((p, i) => p.classList.toggle('active', i === index));
+        if (index === 0) loadAdminClients();
+        if (index === 1) loadAdminCatalogs();
+        if (index === 2) loadAnalytics();
+    }
+
+    function statusBadge(status) {
+        const cls = status === 'Active' ? 'badge-active' : 'badge-hidden';
+        const style = status === 'Pending' ? 'style="background:#fef3c7; color:#b45309;"' : '';
+        return `<span class="badge ${cls}" ${style}>${esc(status)}</span>`;
+    }
+
+    async function guarded(fn) {
+        try { await fn(); } catch (e) { alert(e.message); }
+    }
+
+    /* ---------- CLIENTS ---------- */
+    async function loadAdminClients() {
+        const container = document.getElementById('adminClientsList');
+        try {
+            clientsCache = await adminApi('/api/admin/clients');
+        } catch (e) {
+            container.innerHTML = `<p style="color:#fca5a5; text-align:center; padding:20px;">${esc(e.message)}</p>`;
+            return;
+        }
+        container.innerHTML = '';
+
+        if (clientsCache.length === 0) {
+            container.innerHTML = '<p style="color:#94a3b8; text-align:center; padding: 20px;">No clients registered yet.</p>';
+            return;
+        }
+
+        clientsCache.forEach(client => {
+            let subsHtml = '';
+            if (client.subscriptions.length > 0) {
+                client.subscriptions.forEach(sub => {
+                    const isVisible = sub.showCredentials;
+                    const pp = sub.pendingPayment;
+                    subsHtml += `
+                        <div style="background:rgba(255,255,255,0.03); padding:10px; border-radius:10px; margin-top:8px; border:1px solid var(--border);">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <span style="font-weight:600; color:var(--cream);">${esc(sub.service)} (<strong style="color:var(--gold);">K${sub.price}</strong>)</span>
+                                <div>
+                                    <span class="badge ${isVisible ? 'badge-active' : 'badge-hidden'}">${isVisible ? 'Creds Visible' : 'Creds Hidden'}</span>
+                                    ${statusBadge(sub.status)}
+                                </div>
+                            </div>
+                            <div style="font-size:0.75rem; color:#94a3b8; margin-top:3px;">
+                                Sign: ${esc(sub.signupDate || 'N/A')} | Exp: ${esc(sub.expirationDate || 'N/A')}
+                            </div>
+                            ${pp ? `
+                            <div style="margin-top:8px; padding:8px; border-radius:8px; background:rgba(245,158,11,0.12); border:1px dashed var(--gold); display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                                <span style="font-size:0.8rem; color:#fde68a;">Awaiting ${esc(pp.kind)} payment: <strong>K${pp.amount}</strong>${pp.reference ? ' (ref ' + esc(pp.reference) + ')' : ''}</span>
+                                <button class="btn-sm" style="background:#10b981; color:white;" onclick="confirmPayment(${pp.id})">Confirm Payment</button>
+                            </div>` : ''}
+                            <div style="font-size:0.8rem; color:var(--gold); margin-top:4px;">
+                                <strong>Login:</strong> ${esc(sub.loginDetails || 'Pending admin assignment...')}
+                            </div>
+                            <div class="inline-form">
+                                <input type="text" id="cred-${sub.id}" placeholder="Assign login details..." value="${esc(sub.loginDetails)}">
+                                <button class="btn-sm" onclick="saveServiceCredentials(${sub.id})">Save</button>
+                            </div>
+                            <div class="action-btns">
+                                <button class="btn-sm" style="background:${isVisible ? '#ef4444' : '#10b981'}; color:white;" onclick="toggleCredentialAccess(${sub.id}, ${!isVisible})">
+                                    ${isVisible ? 'Hide Access from Client' : 'Grant Access to Client'}
+                                </button>
+                                <button class="btn-sm" style="background:rgba(239, 68, 68, 0.2); color:#fca5a5; border:1px solid #ef4444;" onclick="removeService(${sub.id})">Remove Service</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                subsHtml = '<p style="color:#94a3b8; font-size:0.80rem;">No subscriptions.</p>';
+            }
+
+            const div = document.createElement('div');
+            div.className = 'card-item';
+            div.innerHTML = `
+                <h3>${esc(client.name)} <span class="badge badge-active">${esc(client.status)}</span></h3>
+                <p>📞 ${esc(client.phone)} | ✉️ ${esc(client.email)}</p>
+                <div style="margin-top:8px;">
+                    <div style="font-size:0.85rem; font-weight:700; color:var(--gold); margin-bottom:4px;">Subscriptions & Unique Logins:</div>
+                    ${subsHtml}
+                </div>
+                <div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap:wrap;">
+                    <button class="btn-sm" style="background:transparent; border:1px solid var(--border); color:var(--cream);" onclick="editClient(${client.id})">Edit Client Info</button>
+                    <button class="btn-sm" style="background:transparent; border:1px solid var(--border); color:var(--cream);" onclick="resetClientPassword(${client.id})">Reset Password</button>
+                    <button class="btn-sm" style="background:rgba(239, 68, 68, 0.2); color:#fca5a5; border:1px solid #ef4444;" onclick="deleteClient(${client.id})">Delete Client</button>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function saveServiceCredentials(subId) {
+        return guarded(async () => {
+            const val = document.getElementById(`cred-${subId}`).value.trim();
+            await adminApi(`/api/admin/subscriptions/${subId}`, { method: 'PATCH', body: { loginDetails: val } });
+            alert('Login credentials updated successfully!');
+            await loadAdminClients();
+        });
+    }
+
+    function toggleCredentialAccess(subId, show) {
+        return guarded(async () => {
+            await adminApi(`/api/admin/subscriptions/${subId}`, { method: 'PATCH', body: { showCredentials: show } });
+            await loadAdminClients();
+        });
+    }
+
+    function confirmPayment(paymentId) {
+        return guarded(async () => {
+            if (!confirm('Confirm that this payment has been received? The service will be activated/extended by 30 days.')) return;
+            await adminApi(`/api/admin/payments/${paymentId}/confirm`, { method: 'POST' });
+            await loadAdminClients();
+        });
+    }
+
+    function removeService(subId) {
+        return guarded(async () => {
+            if (!confirm("Are you sure you want to remove this service subscription for the client?")) return;
+            await adminApi(`/api/admin/subscriptions/${subId}`, { method: 'DELETE' });
+            await loadAdminClients();
+        });
+    }
+
+    function editClient(clientId) {
+        return guarded(async () => {
+            const c = clientsCache.find(x => x.id === clientId);
+            const newName = prompt("Edit Client Name:", c.name);
+            if (newName === null) return;
+            const newPhone = prompt("Edit Client Phone:", c.phone);
+            if (newPhone === null) return;
+            const newEmail = prompt("Edit Client Email:", c.email);
+            if (newEmail === null) return;
+            await adminApi(`/api/admin/clients/${clientId}`, {
+                method: 'PATCH',
+                body: { name: newName.trim() || c.name, phone: newPhone.trim() || c.phone, email: newEmail.trim() || c.email }
+            });
+            alert("Client details updated successfully.");
+            await loadAdminClients();
+        });
+    }
+
+    function resetClientPassword(clientId) {
+        return guarded(async () => {
+            const pw = prompt("Enter a new password for this client (min 6 characters):");
+            if (!pw) return;
+            await adminApi(`/api/admin/clients/${clientId}`, { method: 'PATCH', body: { password: pw } });
+            alert("Password updated. Share it with the client.");
+        });
+    }
+
+    function deleteClient(clientId) {
+        return guarded(async () => {
+            if (!confirm("Are you sure you want to delete this entire client profile?")) return;
+            await adminApi(`/api/admin/clients/${clientId}`, { method: 'DELETE' });
+            await loadAdminClients();
+        });
+    }
+
+    function openAddClientModal() {
+        return guarded(async () => {
+            const name = prompt("Enter Client Full Name:");
+            if (!name) return;
+            const phone = prompt("Enter Client Phone Number:");
+            if (!phone) return;
+            const email = prompt("Enter Client Email Address:");
+            if (!email) return;
+            const password = prompt("Set a temporary password for the client (min 6 characters):");
+            if (!password) return;
+            const service = prompt("Enter Initial Service Name (e.g. Netflix Premium):", "Netflix Premium (shared profiles)");
+            if (!service) return;
+            const price = parseFloat(prompt("Enter Service Price (ZMW):", "65"));
+            if (isNaN(price)) { alert("Invalid price."); return; }
+            const loginDetails = prompt("Enter Unique Login Details:", "Username: user@zm.com | Pass: 1234");
+
+            await adminApi('/api/admin/clients', {
+                method: 'POST',
+                body: { name: name.trim(), phone: phone.trim(), email: email.trim(), password,
+                        service: service.trim(), price, loginDetails: loginDetails || '' }
+            });
+            alert("New client added successfully!");
+            await loadAdminClients();
+        });
+    }
+
+    /* ---------- CATALOG ---------- */
+    let catalogCache = {};
+
+    async function loadAdminCatalogs() {
+        const container = document.getElementById('adminCatalogList');
+        try {
+            catalogCache = await adminApi('/api/admin/catalog');
+        } catch (e) {
+            container.innerHTML = `<p style="color:#fca5a5; text-align:center; padding:20px;">${esc(e.message)}</p>`;
+            return;
+        }
+        let html = '';
+        for (const [category, items] of Object.entries(catalogCache)) {
+            html += `<h4 style="font-size:0.95rem; color:var(--gold); margin: 14px 0 8px 0; font-weight:700;">${esc(category)} Accounts</h4>`;
+            if (items.length === 0) {
+                html += `<p style="color:#94a3b8; font-size:0.8rem; margin-bottom:8px;">No services listed.</p>`;
+            }
+            items.forEach(i => {
+                html += `
+                    <div class="card-item" style="display:flex; justify-content:space-between; align-items:center; padding:12px; margin-bottom:8px;">
+                        <div>
+                            <span style="font-weight:600; display:block; color:var(--cream);">${esc(i.service)}</span>
+                            <strong style="color:var(--gold);">K${i.price}</strong>
+                        </div>
+                        <div style="display:flex; gap:6px;">
+                            <button class="btn-sm" style="background:transparent; border:1px solid var(--border); color:var(--cream);" onclick="editCatalogItem(${i.id})">Edit</button>
+                            <button class="btn-sm" style="background:rgba(239, 68, 68, 0.2); color:#fca5a5; border:1px solid #ef4444;" onclick="removeCatalogItem(${i.id})">Remove</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        container.innerHTML = html;
+    }
+
+    function openAddCatalogItemModal() {
+        return guarded(async () => {
+            const category = prompt("Enter Account Category ('Shared' or 'Private'):", "Shared");
+            if (!category) return;
+            if (category !== 'Shared' && category !== 'Private') {
+                alert("Invalid category. Must be 'Shared' or 'Private'.");
+                return;
+            }
+            const service = prompt("Enter Service Name (e.g. Paramount+):");
+            if (!service) return;
+            const price = parseFloat(prompt("Enter Price (ZMW):", "90"));
+            if (isNaN(price)) { alert("Invalid price."); return; }
+
+            await adminApi('/api/admin/catalog', { method: 'POST', body: { category, service: service.trim(), price } });
+            alert("Service added successfully to catalog!");
+            await loadAdminCatalogs();
+        });
+    }
+
+    function editCatalogItem(id) {
+        return guarded(async () => {
+            const item = Object.values(catalogCache).flat().find(i => i.id === id);
+            const newName = prompt("Edit Service Name:", item.service);
+            if (newName === null) return;
+            const newPrice = parseFloat(prompt("Edit Price (ZMW):", item.price));
+            if (isNaN(newPrice)) { alert("Invalid price."); return; }
+            await adminApi(`/api/admin/catalog/${id}`, {
+                method: 'PATCH', body: { service: newName.trim() || item.service, price: newPrice }
+            });
+            alert("Service updated successfully! (Existing subscriptions keep the price they were sold at.)");
+            await loadAdminCatalogs();
+        });
+    }
+
+    function removeCatalogItem(id) {
+        return guarded(async () => {
+            if (!confirm("Are you sure you want to remove this service from the catalog?")) return;
+            await adminApi(`/api/admin/catalog/${id}`, { method: 'DELETE' });
+            await loadAdminCatalogs();
+        });
+    }
+
+    /* ---------- ANALYTICS ---------- */
+    async function loadAnalytics() {
+        try {
+            const a = await adminApi('/api/admin/analytics');
+            document.getElementById('mTotalClients').innerText = a.totalClients;
+            document.getElementById('mTotalSubs').innerText = a.activeSubscriptions;
+            document.getElementById('mPending').innerText = a.pendingPayments;
+            document.getElementById('mOutstanding').innerText = `K${a.outstandingRevenue}`;
+            document.getElementById('mTotalRevenue').innerText = `K${a.confirmedRevenue}`;
+        } catch (e) {
+            alert(e.message);
+        }
+    }
+
+    function logoutAdmin() {
+        clearToken('admin');
+        window.location.href = 'admin.html';
+    }
+
+    loadAdminClients();
+</script>
+</body>
+</html>
